@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  TECHNICIEN
+  CLIENT
+}
+
+enum TicketStatus {
+  NOUVEAU
+  EN_COURS
+  RESOLU
+  CLOTURE
+}
+
+enum InterventionType {
+  DISTANCE
+  SUR_SITE
+}
+
+enum Priority {
+  NORMAL
+  URGENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTickets Ticket[]       @relation("AssignedTo")
+  client          Client?
+  createdTickets  Ticket[]       @relation("CreatedBy")
+}
+
+model Client {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName       String
+  address           String?
+  isContractual     Boolean  @default(false)
+  contractHours     Int?
+  usedHours         Float    @default(0)
+  travelTimeMinutes Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tickets Ticket[]
+}
+
+model Ticket {
+  id           String           @id @default(uuid())
+  title        String
+  description  String
+  status       TicketStatus     @default(NOUVEAU)
+  type         InterventionType
+  priority     Priority         @default(NORMAL)
+  clientId     String
+  client       Client           @relation(fields: [clientId], references: [id])
+  technicienId String?
+  technicien   User?            @relation("AssignedTo", fields: [technicienId], references: [id])
+  createdById  String
+  createdBy    User             @relation("CreatedBy", fields: [createdById], references: [id])
+  intervention Intervention?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model Intervention {
+  id            String    @id @default(uuid())
+  ticketId      String    @unique
+  ticket        Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  description   String
+  resolution    String?
+  hoursWorked   Float     @default(0)
+  travelMinutes Int       @default(0)
+  pdfUrl        String?
+  sentToClient  Boolean   @default(false)
+  startedAt     DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
