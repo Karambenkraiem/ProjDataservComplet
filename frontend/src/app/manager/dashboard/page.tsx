@@ -70,7 +70,7 @@ export default function ManagerDashboard() {
                   <div key={t.id} className="flex items-center justify-between px-5 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-sm font-semibold">
-                        {t.name.charAt(0)}
+                        {t.name?.charAt(0) || '?'}
                       </div>
                       <div>
                         <p className="text-sm font-medium text-slate-700">{t.name}</p>
