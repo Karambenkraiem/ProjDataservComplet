@@ -155,7 +155,8 @@ export default function TechnicienTicketDetail() {
                   </div>
                 )}
                 {ticket.intervention.pdfUrl && (
-                  <a href={`${process.env.NEXT_PUBLIC_API_URL}${ticket.intervention.pdfUrl}`}
+                  // <a href={`${process.env.NEXT_PUBLIC_API_URL}${ticket.intervention.pdfUrl}`}
+                  <a href={ticket.intervention.pdfUrl}
                     target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm text-blue-600 hover:underline">
                     <Download className="w-4 h-4" /> Télécharger la fiche PDF

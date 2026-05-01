@@ -107,7 +107,8 @@ export default function ClientTicketDetail() {
               </div>
             )}
             {ticket.intervention.pdfUrl && (
-              <a href={`${process.env.NEXT_PUBLIC_API_URL}${ticket.intervention.pdfUrl}`}
+              // <a href={`${process.env.NEXT_PUBLIC_API_URL}${ticket.intervention.pdfUrl}`}
+              <a href={ticket.intervention.pdfUrl}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-violet-700 text-white text-sm rounded-lg hover:bg-violet-800 transition-colors">
                 <Download className="w-4 h-4" /> Télécharger la fiche PDF
