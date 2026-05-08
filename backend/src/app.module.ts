@@ -40,6 +40,7 @@ import { InterventionsModule } from './interventions/interventions.module';
 import { RapportsModule } from './rapports/rapports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TechniciensModule } from './techniciens/techniciens.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     InterventionsModule,
     RapportsModule,
     DashboardModule,
+    TechniciensModule,
     NotificationsModule,
   ],
 })

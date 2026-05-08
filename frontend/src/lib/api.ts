@@ -99,3 +99,8 @@ export const rapportsApi = {
       })
       .then((r) => r.data),
 };
+
+export const techniciensApi = {
+  rendement: () => api.get('/techniciens/rendement').then((r) => r.data),
+  oneRendement: (id: string) => api.get(`/techniciens/${id}/rendement`).then((r) => r.data),
+};
