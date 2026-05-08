@@ -18,7 +18,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            cd /var/www/dataserv/ProjDataservComplet
+            cd /var/www/ProjDataservComplet/dataserv
             git pull origin main
             docker compose down
             docker compose up -d --build
