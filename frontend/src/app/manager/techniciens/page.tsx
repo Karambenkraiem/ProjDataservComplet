@@ -162,21 +162,21 @@ function TechnicienCard({ tech, rank }: { tech: any; rank: number }) {
       </div>
 
       {/* Toggle tickets */}
-      {tech.tickets.length > 0 && (
+      {tech.tickets?.length > 0 && (
         <>
           <button
             onClick={() => setExpanded(!expanded)}
             className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 border-t border-slate-100 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
           >
             <span className="font-medium">
-              Voir les {tech.tickets.length} ticket(s)
+              Voir les {tech.tickets?.length} ticket(s)
             </span>
             {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
 
           {expanded && (
             <div className="px-5 py-3 border-t border-slate-100 max-h-72 overflow-y-auto">
-              {tech.tickets.map((t: any) => (
+              {tech.tickets?.map((t: any) => (
                 <TicketRow key={t.id} ticket={t} />
               ))}
             </div>
