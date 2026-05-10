@@ -15,7 +15,7 @@ const MANAGER_NAV: NavItem[] = [
   { href: '/manager/tickets', label: 'Tickets', icon: Ticket },
   { href: '/manager/clients', label: 'Clients', icon: Building2 },
   { href: '/manager/users', label: 'Techniciens', icon: Users },
-  { href: '/manager/techniciens', label: 'Rendement', icon: BarChart3 },
+  // { href: '/manager/techniciens', label: 'Rendement', icon: BarChart3 },
   { href: '/manager/rapports', label: 'Rapports', icon: FileText },
 ];
 
