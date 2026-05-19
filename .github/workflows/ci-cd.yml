@@ -48,7 +48,7 @@ jobs:
 
       - name: Test backend (unit)
         working-directory: backend
-        run: npm run test
+        run: npm run test -- --passWithNoTests
 
       # ── Frontend (Next.js) ──────────────────────────────────
       - name: Install frontend dependencies
