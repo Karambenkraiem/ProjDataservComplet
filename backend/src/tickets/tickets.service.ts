@@ -173,7 +173,7 @@ export class TicketsService {
   }
 
   async update(id: string, dto: UpdateTicketDto, user: any) {
-    const ticket = await this.findOne(id, user);
+    await this.findOne(id, user);
 
     if (user.role === Role.TECHNICIEN) {
       const allowed = ['status', 'description'];

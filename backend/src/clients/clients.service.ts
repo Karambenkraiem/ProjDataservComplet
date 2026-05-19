@@ -264,7 +264,7 @@ export class ClientsService {
       include: { user: true },
     });
 
-    const { password: pw, ...userWithoutPassword } = client.user;
+    const { password: _pw, ...userWithoutPassword } = client.user;
 
     return { ...client, user: userWithoutPassword };
   }
