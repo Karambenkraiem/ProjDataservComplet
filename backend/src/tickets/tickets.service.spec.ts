@@ -6,7 +6,6 @@ import { Role, TicketStatus } from '@prisma/client';
 
 const managerUser = { id: 'manager-1', role: Role.MANAGER };
 const techUser    = { id: 'tech-1',    role: Role.TECHNICIEN };
-const clientUser  = { id: 'client-user-1', role: Role.CLIENT };
 
 const mockTicket = {
   id: 'ticket-1',
