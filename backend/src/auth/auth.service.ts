@@ -126,6 +126,16 @@ export class AuthService {
     };
   }
 
+  async verifyPassword(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException();
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) throw new UnauthorizedException('Mot de passe incorrect');
+
+    return { ok: true };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

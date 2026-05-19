@@ -32,4 +32,12 @@ export class AuthController {
   refresh(@CurrentUser('id') userId: string) {
     return this.authService.refresh(userId);
   }
+
+  @Post('verify-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Vérifier le mot de passe du manager' })
+  verifyPassword(@CurrentUser('id') userId: string, @Body('password') password: string) {
+    return this.authService.verifyPassword(userId, password);
+  }
 }

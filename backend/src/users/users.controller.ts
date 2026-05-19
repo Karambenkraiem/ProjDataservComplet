@@ -43,9 +43,21 @@ export class UsersController {
     return this.usersService.update(id, dto);
   }
 
+  @Patch(':id/activate')
+  @Roles(Role.MANAGER)
+  activate(@Param('id') id: string) {
+    return this.usersService.setActive(id, true);
+  }
+
+  @Patch(':id/deactivate')
+  @Roles(Role.MANAGER)
+  deactivate(@Param('id') id: string) {
+    return this.usersService.setActive(id, false);
+  }
+
   @Delete(':id')
   @Roles(Role.MANAGER)
   remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+    return this.usersService.hardDelete(id);
   }
 }

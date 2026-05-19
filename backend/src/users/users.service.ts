@@ -172,20 +172,19 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
+  async setActive(id: string, isActive: boolean) {
     await this.findOne(id);
 
     return this.prisma.user.update({
       where: { id },
-      data: { isActive: false },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-      },
+      data: { isActive },
+      select: { id: true, name: true, email: true, role: true, isActive: true },
     });
+  }
+
+  async hardDelete(id: string) {
+    await this.findOne(id);
+    return this.prisma.user.delete({ where: { id } });
   }
 
   async getTechniciens() {

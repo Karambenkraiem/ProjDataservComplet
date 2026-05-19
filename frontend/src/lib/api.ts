@@ -24,9 +24,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
+    const is401 = error.response?.status === 401;
+    const url: string = error.config?.url ?? '';
+    // verify-password gère ses propres tentatives — ne pas déconnecter automatiquement
+    const isVerifyPassword = url.includes('/auth/verify-password');
+
+    if (is401 && !isVerifyPassword && typeof window !== 'undefined') {
+      const msg: string = error.response?.data?.message ?? '';
+      const isDisabled = msg.includes('désactivé') || msg.includes('desactive');
       localStorage.removeItem('dataserv-auth');
-      window.location.href = '/auth/login';
+      window.location.href = isDisabled ? '/auth/login?disabled=1' : '/auth/login';
     }
     return Promise.reject(error);
   }
@@ -36,6 +43,8 @@ export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }).then((r) => r.data),
   profile: () => api.get('/auth/profile').then((r) => r.data),
+  verifyPassword: (password: string) =>
+    api.post('/auth/verify-password', { password }).then((r) => r.data),
 };
 
 export const dashboardApi = {
@@ -74,6 +83,8 @@ export const usersApi = {
   create: (data: any) => api.post('/users', data).then((r) => r.data),
   update: (id: string, data: any) =>
     api.patch(`/users/${id}`, data).then((r) => r.data),
+  activate: (id: string) => api.patch(`/users/${id}/activate`).then((r) => r.data),
+  deactivate: (id: string) => api.patch(`/users/${id}/deactivate`).then((r) => r.data),
   delete: (id: string) => api.delete(`/users/${id}`).then((r) => r.data),
 };
 
