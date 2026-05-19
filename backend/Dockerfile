@@ -16,4 +16,4 @@ RUN mkdir -p uploads/interventions
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed; node dist/src/main.js"]
