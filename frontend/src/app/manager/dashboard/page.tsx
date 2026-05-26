@@ -28,11 +28,11 @@ export default function ManagerDashboard() {
     <div className="flex flex-col h-full">
       <Header title="Tableau de bord" subtitle={`Bonjour, voici l'activité du jour`} />
 
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6 overflow-y-auto">
         {/* Stats */}
         {stats && <StatsCards stats={stats} />}
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
           {/* Tickets récents */}
           <div className="xl:col-span-2 bg-white rounded-xl border border-slate-200">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -42,13 +42,13 @@ export default function ManagerDashboard() {
             <div className="divide-y divide-slate-100">
               {recentTickets?.slice(0, 8).map((t: any) => (
                 <Link key={t.id} href={`/manager/tickets/${t.id}`}>
-                  <div className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50 transition-colors">
+                  <div className="flex items-center gap-3 px-4 md:px-5 py-3 hover:bg-slate-50 transition-colors">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-slate-800 truncate">{t.title}</p>
-                      <p className="text-xs text-slate-500">{t.client?.companyName} · {formatDate(t.createdAt)}</p>
+                      <p className="text-xs text-slate-500 truncate">{t.client?.companyName} · {formatDate(t.createdAt)}</p>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <PriorityBadge priority={t.priority} />
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className="hidden sm:block"><PriorityBadge priority={t.priority} /></span>
                       <StatusBadge status={t.status} />
                     </div>
                   </div>

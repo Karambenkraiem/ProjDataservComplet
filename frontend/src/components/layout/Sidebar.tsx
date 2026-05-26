@@ -2,55 +2,62 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
+import { useSidebar } from './AppShell';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard, Ticket, Users, Building2, BarChart3,
-  Settings, LogOut, Wrench, FileText,
+  LayoutDashboard, Ticket, Users, Building2,
+  LogOut, Wrench, FileText, X,
 } from 'lucide-react';
 
 interface NavItem { href: string; label: string; icon: React.ElementType }
 
 const MANAGER_NAV: NavItem[] = [
   { href: '/manager/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-  { href: '/manager/tickets', label: 'Tickets', icon: Ticket },
-  { href: '/manager/clients', label: 'Clients', icon: Building2 },
-  { href: '/manager/users', label: 'Techniciens', icon: Users },
-  // { href: '/manager/techniciens', label: 'Rendement', icon: BarChart3 },
-  { href: '/manager/rapports', label: 'Rapports', icon: FileText },
+  { href: '/manager/tickets',   label: 'Tickets',          icon: Ticket },
+  { href: '/manager/clients',   label: 'Clients',          icon: Building2 },
+  { href: '/manager/users',     label: 'Techniciens',      icon: Users },
+  { href: '/manager/rapports',  label: 'Rapports',         icon: FileText },
 ];
 
 const TECH_NAV: NavItem[] = [
   { href: '/technicien/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-  { href: '/technicien/tickets', label: 'Mes tickets', icon: Ticket },
+  { href: '/technicien/tickets',   label: 'Mes tickets',      icon: Ticket },
 ];
 
 const CLIENT_NAV: NavItem[] = [
-  { href: '/client/tickets', label: 'Mes tickets', icon: Ticket },
+  { href: '/client/tickets',  label: 'Mes tickets',  icon: Ticket },
   { href: '/client/rapports', label: 'Mes rapports', icon: FileText },
 ];
 
 const ROLE_NAV = { MANAGER: MANAGER_NAV, TECHNICIEN: TECH_NAV, CLIENT: CLIENT_NAV };
 const ROLE_COLORS = {
-  MANAGER: 'from-blue-950 to-blue-800',
+  MANAGER:    'from-blue-950 to-blue-800',
   TECHNICIEN: 'from-emerald-900 to-emerald-700',
-  CLIENT: 'from-violet-900 to-violet-700',
+  CLIENT:     'from-violet-900 to-violet-700',
 };
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router   = useRouter();
   const { user, logout } = useAuthStore();
-  const nav = ROLE_NAV[user?.role || 'CLIENT'];
-  const gradient = ROLE_COLORS[user?.role || 'CLIENT'];
+  const { close } = useSidebar();
+
+  const nav      = ROLE_NAV[user?.role ?? 'CLIENT'];
+  const gradient = ROLE_COLORS[user?.role ?? 'CLIENT'];
 
   const handleLogout = () => { logout(); router.push('/auth/login'); };
 
   return (
-    <aside className={cn('flex flex-col w-60 min-h-screen bg-gradient-to-b text-white', gradient)}>
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
+    <aside
+      className={cn(
+        'flex flex-col w-64 md:w-60 h-full min-h-screen bg-gradient-to-b text-white',
+        gradient,
+      )}
+    >
+      {/* Logo + close button (mobile) */}
+      <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
+          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
             <Wrench className="w-5 h-5" />
           </div>
           <div>
@@ -58,6 +65,14 @@ export function Sidebar() {
             <p className="text-white/60 text-xs mt-0.5">Service Technique</p>
           </div>
         </div>
+        {/* Close button — mobile only */}
+        <button
+          onClick={close}
+          className="md:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Fermer le menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* User info */}
@@ -82,11 +97,12 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            onClick={close}
             className={cn(
               'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all',
               pathname === href
                 ? 'bg-white/20 font-semibold'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                : 'text-white/70 hover:bg-white/10 hover:text-white',
             )}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />

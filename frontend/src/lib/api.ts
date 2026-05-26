@@ -26,10 +26,10 @@ api.interceptors.response.use(
   (error) => {
     const is401 = error.response?.status === 401;
     const url: string = error.config?.url ?? '';
-    // verify-password gère ses propres tentatives — ne pas déconnecter automatiquement
     const isVerifyPassword = url.includes('/auth/verify-password');
+    const isLogin = url.includes('/auth/login');
 
-    if (is401 && !isVerifyPassword && typeof window !== 'undefined') {
+    if (is401 && !isVerifyPassword && !isLogin && typeof window !== 'undefined') {
       const msg: string = error.response?.data?.message ?? '';
       const isDisabled = msg.includes('désactivé') || msg.includes('desactive');
       localStorage.removeItem('dataserv-auth');
@@ -114,4 +114,10 @@ export const rapportsApi = {
 export const techniciensApi = {
   rendement: () => api.get('/techniciens/rendement').then((r) => r.data),
   oneRendement: (id: string) => api.get(`/techniciens/${id}/rendement`).then((r) => r.data),
+};
+
+export const notificationsApi = {
+  list: () => api.get('/notifications').then((r) => r.data),
+  markRead: (id: string) => api.patch(`/notifications/${id}/read`).then((r) => r.data),
+  markAllRead: () => api.patch('/notifications/read-all').then((r) => r.data),
 };

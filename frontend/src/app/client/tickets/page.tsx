@@ -37,7 +37,7 @@ export default function ClientTicketsPage() {
   return (
     <div className="flex flex-col h-full">
       <Header title="Mes tickets" subtitle={`${tickets.length} ticket(s) au total`} />
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
 
         {/* Contrat info */}
         {clientProfile?.isContractual && (
@@ -63,7 +63,7 @@ export default function ClientTicketsPage() {
         )}
 
         {/* Mini stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
           {[
             { label: 'En cours', value: openCount, icon: Clock, color: 'text-amber-700', bg: 'bg-amber-50' },
             { label: 'Résolus', value: resolvedCount, icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-50' },

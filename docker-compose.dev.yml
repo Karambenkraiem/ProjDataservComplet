@@ -1,0 +1,101 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: dataserv-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dataserv}
+      POSTGRES_USER: ${POSTGRES_USER:-dataserv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dataserv_pass}
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dataserv-net-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dataserv} -d ${POSTGRES_DB:-dataserv}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: dataserv-redis-dev
+    restart: unless-stopped
+    networks:
+      - dataserv-net-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: dataserv-backend-dev
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dataserv}:${POSTGRES_PASSWORD:-dataserv_pass}@postgres:5432/${POSTGRES_DB:-dataserv}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_32_chars_minimum_!!}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      PORT: "3001"
+      NODE_ENV: development
+      FRONTEND_URL: http://localhost:3000
+      REDIS_URL: redis://redis:6379
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "300"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - uploads-dev:/app/uploads
+    ports:
+      - "3001:3001"
+    networks:
+      - dataserv-net-dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: dataserv-frontend-dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: /api/v1
+      NEXT_PUBLIC_WS_URL: http://localhost:3001
+      BACKEND_URL: http://backend:3001
+      WATCHPACK_POLLING: "true"
+      WATCHPACK_POLL_INTERVAL: "300"
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+    ports:
+      - "3000:3000"
+    networks:
+      - dataserv-net-dev
+
+volumes:
+  pgdata-dev:
+    name: dataserv-pgdata-dev
+  uploads-dev:
+    name: dataserv-uploads-dev
+
+networks:
+  dataserv-net-dev:
+    name: dataserv-network-dev
+    driver: bridge

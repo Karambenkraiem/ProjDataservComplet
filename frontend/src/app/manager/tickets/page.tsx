@@ -170,14 +170,19 @@ import { Header } from '@/components/layout/Header';
 import { TicketCard } from '@/components/tickets/TicketCard';
 import { useForm } from 'react-hook-form';
 import { Plus, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 const STATUSES = ['', 'NOUVEAU', 'EN_COURS', 'RESOLU', 'CLOTURE'];
 const PRIORITIES = ['', 'NORMAL', 'URGENT'];
 
 export default function ManagerTicketsPage() {
   const qc = useQueryClient();
+  const searchParams = useSearchParams();
   const [showForm, setShowForm] = useState(false);
-  const [filters, setFilters] = useState({ status: '', priority: '' });
+  const [filters, setFilters] = useState({
+    status: searchParams.get('status') ?? '',
+    priority: searchParams.get('priority') ?? '',
+  });
 
   const params: Record<string, string> = {};
   if (filters.status) params.status = filters.status;
@@ -201,8 +206,8 @@ export default function ManagerTicketsPage() {
   return (
     <div className="flex flex-col h-full">
       <Header title="Tickets d'intervention" subtitle={`${tickets.length} ticket(s)`} />
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="flex items-center gap-3 mb-6 flex-wrap">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap">
           <button onClick={() => setShowForm(true)}
             className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors">
             <Plus className="w-4 h-4" /> Nouveau ticket

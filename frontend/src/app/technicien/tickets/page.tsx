@@ -27,10 +27,10 @@ export default function TechnicienTicketsPage() {
   return (
     <div className="flex flex-col h-full">
       <Header title="Mes tickets" subtitle={`${tickets.length} ticket(s) assigné(s)`} />
-      <div className="flex-1 p-6 overflow-y-auto">
+      <div className="flex-1 p-4 md:p-6 overflow-y-auto">
 
         {/* Filtres statut */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
           {STATUSES.map(({ value, label }) => (
             <button key={value} onClick={() => setStatus(value)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

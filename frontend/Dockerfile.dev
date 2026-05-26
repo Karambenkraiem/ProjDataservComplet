@@ -1,0 +1,19 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# 1. Installer toutes les dépendances
+COPY package*.json ./
+RUN npm ci
+
+# 2. Copier les fichiers du projet (.env.local, node_modules, .next exclus par .dockerignore)
+#    Au runtime, ./frontend/src et ./frontend/public sont montés en volume
+COPY . .
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=development
+ENV WATCHPACK_POLLING=true
+ENV WATCHPACK_POLL_INTERVAL=300
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

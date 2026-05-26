@@ -76,3 +76,14 @@ export interface AuthResponse {
   refreshToken: string;
   user: User;
 }
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  ticketId?: string;
+  createdAt: string;
+}

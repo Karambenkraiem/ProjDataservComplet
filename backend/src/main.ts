@@ -148,6 +148,7 @@ import { ConfigService } from '@nestjs/config';
 import * as compression from 'compression';
 import helmet from 'helmet';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { join } from 'path';
 import { AppModule } from './app.module';
 
@@ -157,6 +158,8 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
+
+  app.useWebSocketAdapter(new IoAdapter(app));
 
   // ── Fichiers statiques (PDFs uploadés) ───────────────────────────────────
   const uploadsPath = join(process.cwd(), 'uploads');
@@ -172,7 +175,7 @@ async function bootstrap() {
 
   // ── CORS ──────────────────────────────────────────────────────────────────
   app.enableCors({
-    origin: '*',
+    origin: configService.get('FRONTEND_URL', 'http://localhost'),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

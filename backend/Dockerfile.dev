@@ -1,0 +1,22 @@
+FROM node:20-alpine
+WORKDIR /app
+
+RUN apk add --no-cache openssl
+
+# 1. Installer toutes les dépendances (dev inclus pour nest CLI + typescript)
+COPY package*.json ./
+RUN npm ci
+
+# 2. Copier les fichiers du projet (.env et node_modules exclus par .dockerignore)
+#    Au runtime, ./backend/src est monté en volume et écrase ce dossier
+COPY . .
+RUN npx prisma generate
+
+ENV NODE_ENV=development
+ENV CHOKIDAR_USEPOLLING=true
+ENV CHOKIDAR_INTERVAL=300
+
+EXPOSE 3001
+
+# Generate client, migrations, seed puis watch mode
+CMD ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run start:dev"]

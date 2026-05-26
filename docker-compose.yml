@@ -5,83 +5,98 @@ services:
     container_name: dataserv-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: dataserv
-      POSTGRES_USER: dataserv
-      POSTGRES_PASSWORD: dataserv_pass
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     networks:
       - dataserv-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dataserv -d dataserv"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
     container_name: dataserv-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
     networks:
       - dataserv-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      # target: runner
+      target: runner
     container_name: dataserv-backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://dataserv:dataserv_pass@postgres:5432/dataserv
-      JWT_SECRET: dataserv_jwt_secret_change_me
-      JWT_EXPIRES_IN: 24h
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
       PORT: "3001"
       NODE_ENV: production
-      FRONTEND_URL: http://localhost:3000
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: "587"
-      SMTP_USER: ""
-      SMTP_PASS: ""
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
       REDIS_URL: redis://redis:6379
     volumes:
       - uploads:/app/uploads
-    ports:
-      - "3001:3001"
     networks:
       - dataserv-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/v1',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api/v1
     container_name: dataserv-frontend
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     environment:
       NODE_ENV: production
-    ports:
-      - "3000:3000"
     networks:
       - dataserv-net
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   nginx:
     image: nginx:1.25-alpine
     container_name: dataserv-nginx
     restart: unless-stopped
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     ports:
       - "80:80"
     volumes:

@@ -1,13 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
   private transporter: nodemailer.Transporter;
 
-  constructor(private config: ConfigService) {
+  constructor(
+    private config: ConfigService,
+    private prisma: PrismaService,
+    private gateway: NotificationsGateway,
+  ) {
     this.transporter = nodemailer.createTransport({
       host: this.config.get('SMTP_HOST', 'smtp.gmail.com'),
       port: this.config.get<number>('SMTP_PORT', 587),
@@ -19,7 +25,48 @@ export class NotificationsService {
     });
   }
 
-  async sendInterventionReport(to: string, clientName: string, pdfPath: string, ticketTitle: string) {
+  async notify(
+    userId: string,
+    title: string,
+    message: string,
+    type: string,
+    ticketId?: string,
+  ) {
+    const notif = await this.prisma.notification.create({
+      data: { userId, title, message, type, ticketId },
+    });
+    this.gateway.emitToUser(userId, 'notification', notif);
+    return notif;
+  }
+
+  async getForUser(userId: string) {
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markRead(id: string, userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { id, userId },
+      data: { read: true },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, read: false },
+      data: { read: true },
+    });
+  }
+
+  async sendInterventionReport(
+    to: string,
+    clientName: string,
+    pdfPath: string,
+    ticketTitle: string,
+  ) {
     try {
       await this.transporter.sendMail({
         from: `"DataServ" <${this.config.get('SMTP_USER')}>`,
@@ -36,14 +83,13 @@ export class NotificationsService {
               <p>Veuillez trouver ci-joint la fiche d'intervention pour le ticket : <strong>${ticketTitle}</strong>.</p>
               <p>Merci de votre confiance.</p>
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
-              <p style="color: #64748b; font-size: 14px;">
-                DataServ — Service Technique<br>
-                25 Av. Kh., Tunis 1073
-              </p>
+              <p style="color: #64748b; font-size: 14px;">DataServ — Service Technique<br>25 Av. Kh., Tunis 1073</p>
             </div>
           </div>
         `,
-        attachments: pdfPath ? [{ filename: `fiche-intervention.pdf`, path: pdfPath }] : [],
+        attachments: pdfPath
+          ? [{ filename: 'fiche-intervention.pdf', path: pdfPath }]
+          : [],
       });
       this.logger.log(`Email envoyé à ${to}`);
     } catch (err) {
@@ -51,7 +97,12 @@ export class NotificationsService {
     }
   }
 
-  async sendTicketCreated(techEmail: string, techName: string, ticketTitle: string, priority: string) {
+  async sendTicketCreated(
+    techEmail: string,
+    techName: string,
+    ticketTitle: string,
+    priority: string,
+  ) {
     try {
       await this.transporter.sendMail({
         from: `"DataServ" <${this.config.get('SMTP_USER')}>`,
