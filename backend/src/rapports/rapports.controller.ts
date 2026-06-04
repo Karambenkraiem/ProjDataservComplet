@@ -1,9 +1,10 @@
-import { Controller, Get, Query, Param, Res } from '@nestjs/common';
+import { Controller, Get, Query, Param, Res, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiQuery, ApiOperation } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Role } from '@prisma/client';
 import { RapportsService } from './rapports.service';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('rapports')
 @ApiBearerAuth()
@@ -34,6 +35,7 @@ export class RapportsController {
   }
 
   @Get('mensuel/:clientId')
+  @Roles(Role.MANAGER, Role.CLIENT)
   @ApiOperation({ summary: 'Rapport mensuel PDF pour un client' })
   @ApiQuery({ name: 'month', required: true })
   @ApiQuery({ name: 'year', required: true })
@@ -42,7 +44,12 @@ export class RapportsController {
     @Query('month') month: string,
     @Query('year') year: string,
     @Res() res: Response,
+    @CurrentUser() user: any,
   ) {
+    if (user.role === Role.CLIENT && user.client?.id !== clientId) {
+      throw new ForbiddenException('Accès refusé');
+    }
+
     const buffer = await this.rapportsService.rapportMensuelClient(clientId, +month, +year);
     const filename = `rapport-${clientId}-${year}-${month}.xlsx`;
     res.set({
