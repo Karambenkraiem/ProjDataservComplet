@@ -4,6 +4,12 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  const alreadySeeded = await prisma.user.findFirst();
+  if (alreadySeeded) {
+    console.log('⏭️  Seed déjà effectué — aucune donnée ajoutée.');
+    return;
+  }
+
   const hashedPassword = await bcrypt.hash('Password123!', 12);
 
   // Manager
