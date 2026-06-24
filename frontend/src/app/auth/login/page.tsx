@@ -121,54 +121,54 @@ function LoginForm() {
           >
             <span className="text-base">👔</span>
             <div className="text-left">
-              <div className="text-xs font-semibold text-blue-700">Manager — AMRI Aymen</div>
+              <div className="text-xs font-semibold text-blue-700">Manager — Aymen Amri</div>
               <div className="text-xs text-blue-400 font-mono">manager@dataserv.tn</div>
             </div>
           </button>
           {/* Techniciens */}
           <button
             type="button"
-            onClick={() => quickLogin('tech1@dataserv.tn')}
+            onClick={() => quickLogin('karam@dataserv.tn')}
             className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors"
           >
             <span className="text-base">🔧</span>
             <div className="text-left">
-              <div className="text-xs font-semibold text-green-700">Technicien — Karim Mansour</div>
-              <div className="text-xs text-green-400 font-mono">tech1@dataserv.tn</div>
+              <div className="text-xs font-semibold text-green-700">Technicien — Karam Ben Kraiem</div>
+              <div className="text-xs text-green-400 font-mono">karam@dataserv.tn</div>
             </div>
           </button>
           <button
             type="button"
-            onClick={() => quickLogin('tech2@dataserv.tn')}
+            onClick={() => quickLogin('khaireddine@dataserv.tn')}
             className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors"
           >
             <span className="text-base">🔧</span>
             <div className="text-left">
-              <div className="text-xs font-semibold text-green-700">Technicien — Sonia Belhadj</div>
-              <div className="text-xs text-green-400 font-mono">tech2@dataserv.tn</div>
+              <div className="text-xs font-semibold text-green-700">Technicien — Khaireddine Mhamdi</div>
+              <div className="text-xs text-green-400 font-mono">khaireddine@dataserv.tn</div>
             </div>
           </button>
           {/* Clients */}
           <button
             type="button"
-            onClick={() => quickLogin('contact@alphabank.tn')}
-            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
-          >
-            <span className="text-base">🏦</span>
-            <div className="text-left">
-              <div className="text-xs font-semibold text-purple-700">Client — Alpha Bank</div>
-              <div className="text-xs text-purple-400 font-mono">contact@alphabank.tn</div>
-            </div>
-          </button>
-          <button
-            type="button"
-            onClick={() => quickLogin('it@techcorp.tn')}
+            onClick={() => quickLogin('contact@polinagroup.tn')}
             className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
           >
             <span className="text-base">🏢</span>
             <div className="text-left">
-              <div className="text-xs font-semibold text-purple-700">Client — TechCorp SARL</div>
-              <div className="text-xs text-purple-400 font-mono">it@techcorp.tn</div>
+              <div className="text-xs font-semibold text-purple-700">Client — Polina Group</div>
+              <div className="text-xs text-purple-400 font-mono">contact@polinagroup.tn</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => quickLogin('contact@delice.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
+          >
+            <span className="text-base">🏭</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-purple-700">Client — Delice Holding</div>
+              <div className="text-xs text-purple-400 font-mono">contact@delice.tn</div>
             </div>
           </button>
         </div>

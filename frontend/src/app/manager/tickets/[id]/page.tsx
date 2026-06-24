@@ -92,10 +92,12 @@ export default function ManagerTicketDetail() {
         <div className="bg-white rounded-xl border border-slate-200 p-6 mb-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-slate-800 flex items-center gap-2"><User className="w-4 h-4" /> Technicien assigné</h3>
-            <button onClick={() => setShowAssign(!showAssign)}
-              className="text-sm text-blue-600 hover:underline">
-              {ticket.technicien ? 'Réassigner' : 'Assigner'}
-            </button>
+            {ticket.status !== 'RESOLU' && ticket.status !== 'CLOTURE' && (
+              <button onClick={() => setShowAssign(!showAssign)}
+                className="text-sm text-blue-600 hover:underline">
+                {ticket.technicien ? 'Réassigner' : 'Assigner'}
+              </button>
+            )}
           </div>
 
           {ticket.technicien ? (
@@ -112,7 +114,7 @@ export default function ManagerTicketDetail() {
             <p className="text-sm text-slate-400 italic">Aucun technicien assigné</p>
           )}
 
-          {showAssign && (
+          {showAssign && ticket.status !== 'RESOLU' && ticket.status !== 'CLOTURE' && (
             <div className="mt-4 flex gap-2">
               <select id="tech-select"
                 className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white">

@@ -84,6 +84,7 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
+      - ./frontend/next.config.js:/app/next.config.js
     ports:
       - "3000:3000"
     networks:
