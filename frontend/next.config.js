@@ -1,15 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.watchOptions = {
-        poll: 500,
-        aggregateTimeout: 300,
-      };
-    }
-    return config;
-  },
+  turbopack: {},
   async rewrites() {
     const backendUrl = process.env.BACKEND_URL ?? 'http://localhost:3001';
     return [
