@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { Role, TicketStatus } from '@prisma/client';
 
 const managerUser = { id: 'manager-1', role: Role.MANAGER };
@@ -30,6 +31,15 @@ const mockPrisma = {
   intervention: {
     create: jest.fn(),
   },
+  user: {
+    findMany: jest.fn().mockResolvedValue([]),
+  },
+};
+
+const mockNotifications = {
+  notify:                  jest.fn().mockResolvedValue({}),
+  sendTicketCreated:       jest.fn().mockResolvedValue(undefined),
+  sendInterventionReport:  jest.fn().mockResolvedValue(undefined),
 };
 
 describe('TicketsService', () => {
@@ -39,7 +49,8 @@ describe('TicketsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TicketsService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: PrismaService,       useValue: mockPrisma },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 
