@@ -1,19 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { Header } from '@/components/layout/Header';
-import { StatusBadge, PriorityBadge } from '@/components/tickets/TicketStatusBadge';
-import { formatDate } from '@/lib/utils';
 import {
   Users, Clock, CheckCircle2, AlertTriangle, TrendingUp,
-  ChevronDown, ChevronUp, Star, Wrench, XCircle, BarChart3,
+  ChevronUp, ChevronDown, ChevronsUpDown, BarChart3, Wrench,
 } from 'lucide-react';
 
-const fetchRendement = () =>
-  api.get('/techniciens/rendement').then((r) => r.data);
+const fetchRendement = () => api.get('/techniciens/rendement').then((r) => r.data);
 
-// ── Grade badge ──────────────────────────────────────────────────────────────
+type SortField = 'createdAt' | 'score' | 'totalAssigned' | 'resolus' | 'heures' | 'enCours';
+type SortDir = 'asc' | 'desc';
+
 function GradeBadge({ grade, score }: { grade: string; score: number }) {
   const colors: Record<string, string> = {
     A: 'bg-emerald-100 text-emerald-700 border-emerald-300',
@@ -24,172 +23,49 @@ function GradeBadge({ grade, score }: { grade: string; score: number }) {
     'N/A': 'bg-slate-100 text-slate-500 border-slate-200',
   };
   return (
-    <div className={`flex flex-col items-center justify-center w-14 h-14 rounded-xl border-2 font-bold ${colors[grade] || colors['N/A']}`}>
-      <span className="text-xl leading-none">{grade}</span>
-      <span className="text-xs font-normal mt-0.5">{score}/100</span>
+    <div className={`inline-flex flex-col items-center justify-center w-12 h-12 rounded-xl border-2 font-bold ${colors[grade] || colors['N/A']}`}>
+      <span className="text-lg leading-none">{grade}</span>
+      <span className="text-xs font-normal">{score}</span>
     </div>
   );
 }
 
-// ── Score bar ────────────────────────────────────────────────────────────────
 function ScoreBar({ score }: { score: number }) {
-  const color =
-    score >= 85 ? 'bg-emerald-500' :
-    score >= 70 ? 'bg-blue-500' :
-    score >= 50 ? 'bg-amber-500' :
-    score >= 30 ? 'bg-orange-500' : 'bg-red-500';
-
+  const color = score >= 85 ? 'bg-emerald-500' : score >= 70 ? 'bg-blue-500' : score >= 50 ? 'bg-amber-500' : score >= 30 ? 'bg-orange-500' : 'bg-red-500';
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
-          style={{ width: `${score}%` }}
-        />
+    <div className="flex items-center gap-2 w-28">
+      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
-      <span className="text-xs font-medium text-slate-600 w-8 text-right">{score}%</span>
+      <span className="text-xs font-medium text-slate-600 w-7 text-right">{score}%</span>
     </div>
   );
 }
 
-// ── Stat mini card ────────────────────────────────────────────────────────────
-function MiniStat({ label, value, icon: Icon, color }: {
-  label: string; value: string | number; icon: any; color: string;
+function SortTh({ label, field, sort, onSort }: {
+  label: string; field: SortField;
+  sort: { field: SortField; dir: SortDir };
+  onSort: (f: SortField) => void;
 }) {
+  const active = sort.field === field;
   return (
-    <div className="flex items-center gap-2">
-      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
-        <Icon className="w-3.5 h-3.5" />
-      </div>
-      <div>
-        <p className="text-xs text-slate-400">{label}</p>
-        <p className="text-sm font-semibold text-slate-700">{value}</p>
-      </div>
-    </div>
+    <th className="px-4 py-3 text-left">
+      <button
+        onClick={() => onSort(field)}
+        className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition-colors ${active ? 'text-blue-700' : 'text-slate-500 hover:text-slate-800'}`}
+      >
+        {label}
+        {active
+          ? sort.dir === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />
+          : <ChevronsUpDown className="w-3 h-3 text-slate-300" />}
+      </button>
+    </th>
   );
 }
 
-// ── Ticket row ────────────────────────────────────────────────────────────────
-function TicketRow({ ticket }: { ticket: any }) {
-  return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-slate-700 truncate font-medium">{ticket.title}</p>
-        <p className="text-xs text-slate-400">{formatDate(ticket.createdAt)}</p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {ticket.hoursWorked > 0 && (
-          <span className="text-xs text-slate-400 flex items-center gap-1">
-            <Clock className="w-3 h-3" />{ticket.hoursWorked}h
-          </span>
-        )}
-        <PriorityBadge priority={ticket.priority} />
-        <StatusBadge status={ticket.status} />
-      </div>
-    </div>
-  );
-}
-
-// ── Technicien card ───────────────────────────────────────────────────────────
-function TechnicienCard({ tech, rank }: { tech: any; rank: number }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const rankColors: Record<number, string> = {
-    1: 'text-yellow-500',
-    2: 'text-slate-400',
-    3: 'text-amber-600',
-  };
-
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      {/* Header card */}
-      <div className="p-5">
-        <div className="flex items-start gap-4">
-          {/* Rank */}
-          <div className="flex flex-col items-center flex-shrink-0 pt-1">
-            <span className={`text-lg font-bold ${rankColors[rank] || 'text-slate-300'}`}>
-              #{rank}
-            </span>
-            {rank <= 3 && <Star className={`w-4 h-4 ${rankColors[rank]}`} fill="currentColor" />}
-          </div>
-
-          {/* Avatar + nom */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${
-              tech.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'
-            }`}>
-              {tech.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="font-semibold text-slate-800 truncate">{tech.name}</p>
-                {!tech.isActive && (
-                  <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">Inactif</span>
-                )}
-              </div>
-              <p className="text-xs text-slate-400 truncate">{tech.email}</p>
-            </div>
-          </div>
-
-          {/* Grade */}
-          <GradeBadge grade={tech.grade} score={tech.score} />
-        </div>
-
-        {/* Score bar */}
-        <div className="mt-4 mb-4">
-          <div className="flex justify-between text-xs text-slate-500 mb-1">
-            <span>Score de rendement</span>
-            <span className="font-medium">{tech.resolutionRate}% résolution</span>
-          </div>
-          <ScoreBar score={tech.score} />
-        </div>
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <MiniStat label="Tickets assignés" value={tech.totalAssigned}
-            icon={Wrench} color="bg-blue-50 text-blue-600" />
-          <MiniStat label="En cours" value={tech.enCours}
-            icon={Clock} color="bg-amber-50 text-amber-600" />
-          <MiniStat label="Résolus" value={tech.resolus + tech.clotures}
-            icon={CheckCircle2} color="bg-emerald-50 text-emerald-600" />
-          <MiniStat label="Heures totales" value={`${tech.totalHoursWorked}h`}
-            icon={TrendingUp} color="bg-violet-50 text-violet-600" />
-          <MiniStat label="Moy. par ticket" value={`${tech.avgHoursPerTicket}h`}
-            icon={BarChart3} color="bg-slate-100 text-slate-600" />
-          <MiniStat label="Urgents résolus" value={tech.urgentsResolus}
-            icon={AlertTriangle} color="bg-red-50 text-red-600" />
-        </div>
-      </div>
-
-      {/* Toggle tickets */}
-      {tech.tickets?.length > 0 && (
-        <>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="w-full flex items-center justify-between px-5 py-3 bg-slate-50 border-t border-slate-100 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            <span className="font-medium">
-              Voir les {tech.tickets?.length} ticket(s)
-            </span>
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {expanded && (
-            <div className="px-5 py-3 border-t border-slate-100 max-h-72 overflow-y-auto">
-              {tech.tickets?.map((t: any) => (
-                <TicketRow key={t.id} ticket={t} />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-}
-
-// ── Page principale ───────────────────────────────────────────────────────────
 export default function TechniciensRendementPage() {
-  const [sortBy, setSortBy] = useState<'score' | 'totalAssigned' | 'resolus' | 'heures'>('score');
+  const [sort, setSort] = useState<{ field: SortField; dir: SortDir }>({ field: 'createdAt', dir: 'desc' });
+  const [search, setSearch] = useState('');
 
   const { data: techniciens = [], isLoading } = useQuery({
     queryKey: ['techniciens-rendement'],
@@ -197,13 +73,31 @@ export default function TechniciensRendementPage() {
     refetchInterval: 60_000,
   });
 
-  const sorted = [...techniciens].sort((a: any, b: any) => {
-    if (sortBy === 'score') return b.score - a.score;
-    if (sortBy === 'totalAssigned') return b.totalAssigned - a.totalAssigned;
-    if (sortBy === 'resolus') return (b.resolus + b.clotures) - (a.resolus + a.clotures);
-    if (sortBy === 'heures') return b.totalHoursWorked - a.totalHoursWorked;
-    return 0;
-  });
+  const toggleSort = (field: SortField) => {
+    setSort(s => s.field === field ? { ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { field, dir: 'desc' });
+  };
+
+  const displayed = useMemo(() => {
+    let list = [...techniciens] as any[];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(t => t.name?.toLowerCase().includes(q) || t.email?.toLowerCase().includes(q));
+    }
+    list.sort((a, b) => {
+      let av: any, bv: any;
+      if (sort.field === 'createdAt') { av = new Date(a.createdAt ?? 0).getTime(); bv = new Date(b.createdAt ?? 0).getTime(); }
+      else if (sort.field === 'score') { av = a.score; bv = b.score; }
+      else if (sort.field === 'totalAssigned') { av = a.totalAssigned; bv = b.totalAssigned; }
+      else if (sort.field === 'resolus') { av = (a.resolus ?? 0) + (a.clotures ?? 0); bv = (b.resolus ?? 0) + (b.clotures ?? 0); }
+      else if (sort.field === 'heures') { av = a.totalHoursWorked; bv = b.totalHoursWorked; }
+      else if (sort.field === 'enCours') { av = a.enCours; bv = b.enCours; }
+      else { av = 0; bv = 0; }
+      if (av < bv) return sort.dir === 'asc' ? -1 : 1;
+      if (av > bv) return sort.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return list;
+  }, [techniciens, search, sort]);
 
   // Totaux globaux
   const totaux = techniciens.reduce((acc: any, t: any) => ({
@@ -215,97 +109,133 @@ export default function TechniciensRendementPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <Header
-        title="Rendement des techniciens"
-        subtitle="Performance et suivi par technicien"
-      />
+      <Header title="Rendement des techniciens" subtitle={`${displayed.length} technicien(s)`} />
 
       <div className="flex-1 p-6 overflow-y-auto">
 
-        {/* KPIs globaux */}
+        {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Techniciens actifs', value: techniciens.filter((t: any) => t.isActive).length, icon: Users, color: 'text-blue-700', bg: 'bg-blue-50' },
+            { label: 'Techniciens actifs', value: (techniciens as any[]).filter(t => t.isActive).length, icon: Users, color: 'text-blue-700', bg: 'bg-blue-50' },
             { label: 'Tickets assignés', value: totaux.totalAssigned, icon: Wrench, color: 'text-violet-700', bg: 'bg-violet-50' },
             { label: 'Tickets résolus', value: totaux.resolus, icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-50' },
             { label: 'Heures travaillées', value: `${Math.round(totaux.heures)}h`, icon: Clock, color: 'text-amber-700', bg: 'bg-amber-50' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
-            <div key={label} className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
-              <div className={`w-12 h-12 ${bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                <Icon className={`w-6 h-6 ${color}`} />
+            <div key={label} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-3">
+              <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                <Icon className={`w-5 h-5 ${color}`} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-800">{value}</p>
-                <p className="text-sm text-slate-500">{label}</p>
+                <p className="text-xl font-bold text-slate-800">{value}</p>
+                <p className="text-xs text-slate-500">{label}</p>
               </div>
             </div>
           ))}
         </div>
 
         {/* Légende grades */}
-        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-            Système de notation automatique
-          </p>
-          <div className="flex flex-wrap gap-3 text-xs">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Système de notation</p>
+          <div className="flex flex-wrap gap-2 text-xs">
             {[
-              { grade: 'A', range: '85-100', desc: 'Excellent', color: 'bg-emerald-100 text-emerald-700' },
-              { grade: 'B', range: '70-84', desc: 'Bien', color: 'bg-blue-100 text-blue-700' },
-              { grade: 'C', range: '50-69', desc: 'Moyen', color: 'bg-amber-100 text-amber-700' },
-              { grade: 'D', range: '30-49', desc: 'Insuffisant', color: 'bg-orange-100 text-orange-700' },
-              { grade: 'F', range: '0-29', desc: 'Mauvais', color: 'bg-red-100 text-red-700' },
-            ].map(({ grade, range, desc, color }) => (
-              <div key={grade} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${color}`}>
-                <span className="font-bold text-base">{grade}</span>
-                <span>{range} pts — {desc}</span>
-              </div>
+              { grade: 'A', range: '85-100', color: 'bg-emerald-100 text-emerald-700' },
+              { grade: 'B', range: '70-84', color: 'bg-blue-100 text-blue-700' },
+              { grade: 'C', range: '50-69', color: 'bg-amber-100 text-amber-700' },
+              { grade: 'D', range: '30-49', color: 'bg-orange-100 text-orange-700' },
+              { grade: 'F', range: '0-29', color: 'bg-red-100 text-red-700' },
+            ].map(({ grade, range, color }) => (
+              <span key={grade} className={`px-2.5 py-1 rounded-lg font-semibold ${color}`}>{grade} — {range} pts</span>
             ))}
           </div>
-          <p className="text-xs text-slate-400 mt-3">
-            Score = 60% taux de résolution + 20% urgents résolus + 20% efficacité (heures/ticket)
-          </p>
+          <p className="text-xs text-slate-400 mt-2">Score = 60% résolution + 20% urgents + 20% efficacité</p>
         </div>
 
-        {/* Tri */}
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          <span className="text-sm text-slate-500">Trier par :</span>
-          {[
-            { value: 'score', label: 'Score' },
-            { value: 'totalAssigned', label: 'Tickets assignés' },
-            { value: 'resolus', label: 'Tickets résolus' },
-            { value: 'heures', label: 'Heures travaillées' },
-          ].map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setSortBy(value as any)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                sortBy === value
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 mb-4">
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Rechercher technicien…"
+            className="border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 bg-white w-52 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
         </div>
 
-        {/* Cards techniciens */}
+        {/* Table */}
         {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-xl h-64 animate-pulse" />
-            ))}
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="bg-white border border-slate-200 rounded-lg h-14 animate-pulse" />)}
           </div>
-        ) : sorted.length === 0 ? (
+        ) : displayed.length === 0 ? (
           <div className="text-center py-16 text-slate-400">
             <Users className="w-10 h-10 mx-auto mb-2 text-slate-200" />
-            <p className="font-medium">Aucun technicien trouvé</p>
+            <p className="font-medium">Aucun technicien</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {sorted.map((tech: any, index: number) => (
-              <TechnicienCard key={tech.id} tech={tech} rank={index + 1} />
-            ))}
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">#</th>
+                  <SortTh label="Nom" field="createdAt" sort={sort} onSort={toggleSort} />
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Grade</th>
+                  <SortTh label="Score" field="score" sort={sort} onSort={toggleSort} />
+                  <SortTh label="Assignés" field="totalAssigned" sort={sort} onSort={toggleSort} />
+                  <SortTh label="En cours" field="enCours" sort={sort} onSort={toggleSort} />
+                  <SortTh label="Résolus" field="resolus" sort={sort} onSort={toggleSort} />
+                  <SortTh label="Heures" field="heures" sort={sort} onSort={toggleSort} />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {displayed.map((tech: any, index: number) => {
+                  const rankColors: Record<number, string> = { 0: 'text-yellow-500 font-bold', 1: 'text-slate-400 font-bold', 2: 'text-amber-600 font-bold' };
+                  return (
+                    <tr key={tech.id} className={`hover:bg-slate-50 transition-colors ${!tech.isActive ? 'opacity-60' : ''}`}>
+                      <td className="px-4 py-3">
+                        <span className={`text-sm ${rankColors[index] || 'text-slate-400'}`}>#{index + 1}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${tech.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>
+                            {tech.name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-800">{tech.name}</p>
+                            <p className="text-xs text-slate-400">{tech.email}</p>
+                          </div>
+                          {!tech.isActive && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">Inactif</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3"><GradeBadge grade={tech.grade} score={tech.score} /></td>
+                      <td className="px-4 py-3"><ScoreBar score={tech.score} /></td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-violet-700">
+                          <Wrench className="w-3.5 h-3.5" />
+                          <span className="font-semibold">{tech.totalAssigned}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-amber-600">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="font-semibold">{tech.enCours}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-emerald-600">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span className="font-semibold">{(tech.resolus ?? 0) + (tech.clotures ?? 0)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5 text-blue-600">
+                          <TrendingUp className="w-3.5 h-3.5" />
+                          <span className="font-semibold">{tech.totalHoursWorked}h</span>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

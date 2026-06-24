@@ -25,9 +25,15 @@ function LoginForm() {
     if (searchParams.get('disabled') === '1') setDisabled(true);
   }, [searchParams]);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  const quickLogin = (email: string) => {
+    setValue('email', email);
+    setValue('password', 'Password123!');
+    handleSubmit(onSubmit)();
+  };
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -105,12 +111,66 @@ function LoginForm() {
       </form>
 
       <div className="mt-6 pt-5 border-t border-slate-100">
-        <p className="text-xs text-slate-400 text-center mb-2">Comptes de démonstration</p>
-        <div className="space-y-1 text-xs text-slate-500">
-          <div className="flex justify-between"><span>Manager</span><span className="font-mono">manager@dataserv.tn</span></div>
-          <div className="flex justify-between"><span>Technicien</span><span className="font-mono">tech1@dataserv.tn</span></div>
-          <div className="flex justify-between"><span>Client</span><span className="font-mono">contact@alphabank.tn</span></div>
-          <div className="flex justify-between text-slate-400"><span>Mot de passe</span><span className="font-mono">Password123!</span></div>
+        <p className="text-xs text-slate-400 text-center mb-3">Connexion rapide — démo</p>
+        <div className="space-y-2">
+          {/* Manager */}
+          <button
+            type="button"
+            onClick={() => quickLogin('manager@dataserv.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors"
+          >
+            <span className="text-base">👔</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-blue-700">Manager — AMRI Aymen</div>
+              <div className="text-xs text-blue-400 font-mono">manager@dataserv.tn</div>
+            </div>
+          </button>
+          {/* Techniciens */}
+          <button
+            type="button"
+            onClick={() => quickLogin('tech1@dataserv.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors"
+          >
+            <span className="text-base">🔧</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-green-700">Technicien — Karim Mansour</div>
+              <div className="text-xs text-green-400 font-mono">tech1@dataserv.tn</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => quickLogin('tech2@dataserv.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-green-200 bg-green-50 hover:bg-green-100 transition-colors"
+          >
+            <span className="text-base">🔧</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-green-700">Technicien — Sonia Belhadj</div>
+              <div className="text-xs text-green-400 font-mono">tech2@dataserv.tn</div>
+            </div>
+          </button>
+          {/* Clients */}
+          <button
+            type="button"
+            onClick={() => quickLogin('contact@alphabank.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
+          >
+            <span className="text-base">🏦</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-purple-700">Client — Alpha Bank</div>
+              <div className="text-xs text-purple-400 font-mono">contact@alphabank.tn</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => quickLogin('it@techcorp.tn')}
+            className="w-full flex items-center gap-3 py-2 px-3 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors"
+          >
+            <span className="text-base">🏢</span>
+            <div className="text-left">
+              <div className="text-xs font-semibold text-purple-700">Client — TechCorp SARL</div>
+              <div className="text-xs text-purple-400 font-mono">it@techcorp.tn</div>
+            </div>
+          </button>
         </div>
       </div>
     </div>
